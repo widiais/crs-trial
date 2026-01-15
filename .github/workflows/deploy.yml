@@ -52,24 +52,59 @@ jobs:
               exit 1
             fi
             
-            # Rebuild and restart containers
-            echo "🐳 Rebuilding containers..."
+            # Ensure PostgreSQL container is running (jangan recreate, pertahankan volume)
+            echo "🗄️  Ensuring PostgreSQL container is running..."
+            docker-compose -f docker-compose.prod.yaml --env-file .env up -d postgres || {
+              echo "⚠️  PostgreSQL container might already be running"
+            }
+            
+            # Wait for PostgreSQL to be ready
+            echo "⏳ Waiting for PostgreSQL to be ready..."
+            sleep 5
+            timeout=30
+            # Get POSTGRES_USER from .env or use default
+            POSTGRES_USER=$(grep POSTGRES_USER .env | cut -d '=' -f2 | tr -d '"' || echo "postgres")
+            while [ $timeout -gt 0 ]; do
+              if docker exec crs-trial-db-prod pg_isready -U "$POSTGRES_USER" > /dev/null 2>&1; then
+                echo "✅ PostgreSQL is ready!"
+                break
+              fi
+              echo "⏳ Waiting for PostgreSQL... ($timeout seconds remaining)"
+              sleep 2
+              timeout=$((timeout - 2))
+            done
+            
+            # Rebuild and restart app container (jangan rebuild postgres untuk menjaga data)
+            echo "🐳 Rebuilding app container..."
             docker-compose -f docker-compose.prod.yaml --env-file .env build app
             
-            echo "🔄 Restarting containers..."
+            echo "🔄 Restarting app container..."
             docker-compose -f docker-compose.prod.yaml --env-file .env up -d app
             
-            # Wait for container to be ready
-            echo "⏳ Waiting for container to be ready..."
+            # Wait for app container to be ready
+            echo "⏳ Waiting for app container to be ready..."
             sleep 10
             
             # Setup database schema if needed
-            echo "🗄️  Setting up database schema..."
-            docker exec crs-trial npx prisma@6.1.0 db push || echo "Database schema already up to date"
+            # db push akan UPDATE schema tanpa menghapus data yang sudah ada
+            # Default behavior: akan error jika ada perubahan yang bisa menghapus data (AMAN)
+            # --skip-generate: skip generate di sini, kita akan generate setelahnya
+            echo "🗄️  Updating database schema (data akan dipertahankan)..."
+            echo "⚠️  Note: db push akan error jika ada perubahan destructive (ini AMAN untuk melindungi data)"
+            docker exec crs-trial npx prisma@6.1.0 db push --skip-generate || {
+              echo "⚠️  Schema update failed atau ada perubahan yang memerlukan perhatian"
+              echo "⚠️  Data tetap aman - tidak ada data yang dihapus"
+              echo "⚠️  Jika perlu perubahan destructive, gunakan migration manual"
+            }
             
             # Generate Prisma Client after schema update (untuk memastikan model baru seperti ApiKey tersedia)
             echo "🔧 Generating Prisma Client..."
-            docker exec crs-trial npx prisma@6.1.0 generate || echo "Prisma Client generation skipped"
+            docker exec crs-trial npx prisma@6.1.0 generate || {
+              echo "⚠️  Prisma Client generation failed, trying to rebuild container..."
+              docker-compose -f docker-compose.prod.yaml --env-file .env build app
+              docker-compose -f docker-compose.prod.yaml --env-file .env up -d app
+              sleep 5
+            }
             
             # Restart container setelah schema update untuk memastikan aplikasi menggunakan Prisma Client terbaru
             echo "🔄 Restarting container after schema update..."
