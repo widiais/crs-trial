@@ -67,6 +67,15 @@ jobs:
             echo "🗄️  Setting up database schema..."
             docker exec crs-trial npx prisma@6.1.0 db push || echo "Database schema already up to date"
             
+            # Generate Prisma Client after schema update (untuk memastikan model baru seperti ApiKey tersedia)
+            echo "🔧 Generating Prisma Client..."
+            docker exec crs-trial npx prisma@6.1.0 generate || echo "Prisma Client generation skipped"
+            
+            # Restart container setelah schema update untuk memastikan aplikasi menggunakan Prisma Client terbaru
+            echo "🔄 Restarting container after schema update..."
+            docker-compose -f docker-compose.prod.yaml --env-file .env restart app
+            sleep 5
+            
             # Health check
             echo "🏥 Running health check..."
             sleep 5
