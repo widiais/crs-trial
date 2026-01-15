@@ -29,9 +29,10 @@ services:
       - "${APP_PORT:-3000}:3000"
     environment:
       DATABASE_URL: "postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-crs_trial}?schema=public"
-      SESSION_SECRET: ${SESSION_SECRET}
+      SESSION_SECRET: ${SESSION_SECRET:-change-this-secret-key}
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
       NODE_ENV: production
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
     depends_on:
       postgres:
         condition: service_healthy

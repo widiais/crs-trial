@@ -25,14 +25,13 @@ docker-compose up
 
 ### Production
 
-1. Buat file `.env` di folder `docker/`:
+1. Setup environment variables:
 ```bash
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=your-secure-password
-POSTGRES_DB=crs_trial
-APP_PORT=3000
-SESSION_SECRET=your-secret-key
-NEXT_PUBLIC_APP_URL=http://your-domain.com
+# Menggunakan setup script (recommended)
+./setup-env.sh your-domain.com
+
+# Atau manual
+nano .env
 ```
 
 2. Deploy:
@@ -40,6 +39,12 @@ NEXT_PUBLIC_APP_URL=http://your-domain.com
 ./deploy.sh start
 ./deploy.sh setup-db
 ```
+
+**Required Environment Variables:**
+- `POSTGRES_PASSWORD` - Database password (required)
+- `SESSION_SECRET` - Session encryption key (required)
+- `NEXT_PUBLIC_APP_URL` - Application URL (required)
+- `COOKIE_SECURE` - Set to "false" for HTTP, "true" for HTTPS (default: false)
 
 ## Commands
 

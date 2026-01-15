@@ -3,11 +3,19 @@ import { cookies } from "next/headers";
 const SESSION_COOKIE_NAME = "session";
 const SESSION_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 
+// Allow secure cookie to be configured via env (default: true in production)
+const getSecureCookie = () => {
+  if (process.env.COOKIE_SECURE !== undefined) {
+    return process.env.COOKIE_SECURE === "true";
+  }
+  return process.env.NODE_ENV === "production";
+};
+
 export async function createSession(userId: string = "default") {
   const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE_NAME, userId, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: getSecureCookie(),
     sameSite: "lax",
     maxAge: SESSION_MAX_AGE,
     path: "/",

@@ -49,6 +49,23 @@ scp -r crs-trial/ user@your-vps-ip:/var/www/
 
 ## Step 3: Setup Environment Variables
 
+### Opsi A: Menggunakan Setup Script (Recommended)
+
+```bash
+cd /var/www/crs-trial/docker
+./setup-env.sh your-domain.com
+# atau
+./setup-env.sh YOUR_VPS_IP
+```
+
+Script ini akan:
+- Generate secure password untuk PostgreSQL
+- Generate secure session secret
+- Setup environment variables dengan benar
+- Menampilkan semua generated values untuk disimpan
+
+### Opsi B: Manual Setup
+
 ```bash
 cd /var/www/crs-trial/docker
 nano .env
@@ -67,12 +84,45 @@ POSTGRES_PORT=5432
 APP_PORT=3000
 SESSION_SECRET=CHANGE_THIS_TO_RANDOM_SECRET_KEY
 NEXT_PUBLIC_APP_URL=http://your-domain.com
+COOKIE_SECURE=false
 ```
 
 **PENTING**: 
-- Ganti `CHANGE_THIS_TO_SECURE_PASSWORD` dengan password yang kuat
-- Ganti `CHANGE_THIS_TO_RANDOM_SECRET_KEY` dengan random string (bisa generate dengan: `openssl rand -base64 32`)
-- Ganti `your-domain.com` dengan domain Anda, atau gunakan IP VPS jika tidak pakai domain
+- **POSTGRES_PASSWORD**: Ganti dengan password yang kuat (minimal 12 karakter)
+- **SESSION_SECRET**: Generate dengan `openssl rand -base64 32` atau gunakan random string yang panjang
+- **NEXT_PUBLIC_APP_URL**: 
+  - Tanpa domain: `http://YOUR_VPS_IP:3000`
+  - Dengan domain: `http://your-domain.com`
+  - Dengan HTTPS: `https://your-domain.com`
+- **COOKIE_SECURE**: 
+  - `false` untuk HTTP (testing tanpa SSL)
+  - `true` untuk HTTPS (production dengan SSL)
+
+### Quick Setup Script
+
+```bash
+cd /var/www/crs-trial/docker
+
+# Generate secure password and secret
+POSTGRES_PASSWORD=$(openssl rand -base64 16 | tr -d "=+/" | cut -c1-16)
+SESSION_SECRET=$(openssl rand -base64 32)
+
+# Create .env file
+cat > .env << EOF
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+POSTGRES_DB=crs_trial
+POSTGRES_PORT=5432
+APP_PORT=3000
+SESSION_SECRET=$SESSION_SECRET
+NEXT_PUBLIC_APP_URL=http://$(hostname -I | awk '{print $1}'):3000
+COOKIE_SECURE=false
+EOF
+
+# Show the generated values (save them!)
+echo "Generated .env file. Save these values:"
+cat .env
+```
 
 ## Step 4: Build dan Start Services
 
