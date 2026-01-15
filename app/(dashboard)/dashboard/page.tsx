@@ -7,6 +7,7 @@ export default function DashboardPage() {
         <p className="mt-2 text-muted-foreground">
           This is your dashboard. You can navigate to Setup Categories from the
           sidebar.
+          Test Auto Deploy to Main
         </p>
       </div>
     </div>

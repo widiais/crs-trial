@@ -570,7 +570,85 @@ Aplikasi Anda sudah berjalan di VPS Hostinger!
 - Setup SSL/HTTPS dengan Let's Encrypt (optional)
 - Setup automatic backups
 - Monitor logs secara berkala
-- Update aplikasi secara berkala
+- **Setup Auto-Deploy dengan GitHub Actions** (lihat Step 10)
+
+---
+
+## 🤖 Step 10: Setup Auto-Deploy dengan GitHub Actions (Optional)
+
+Setup CI/CD untuk auto-deploy setiap ada push ke branch `main`.
+
+### 10.1 Setup SSH Key di VPS
+
+```bash
+# Di VPS
+cd /var/www/crs-trial/docker
+./setup-github-actions.sh
+```
+
+Script akan:
+- Generate SSH key khusus untuk GitHub Actions
+- Setup authorized_keys
+- Menampilkan private key untuk di-copy ke GitHub Secrets
+
+**⚠️ PENTING:** Simpan private key yang ditampilkan!
+
+### 10.2 Setup GitHub Secrets
+
+Di GitHub repository:
+1. Buka **Settings → Secrets and variables → Actions**
+2. Klik **New repository secret**
+3. Tambahkan secrets berikut:
+
+**VPS_SSH_PRIVATE_KEY:**
+- Value: Private key yang di-copy dari VPS (seluruh isi, termasuk BEGIN/END lines)
+
+**VPS_HOST:**
+- Value: IP VPS atau domain (contoh: `123.456.789.0`)
+
+**VPS_USER:**
+- Value: Username SSH (biasanya `root`)
+
+**VPS_URL** (optional):
+- Value: URL aplikasi (contoh: `http://yourdomain.com:3000`)
+
+### 10.3 Test Auto-Deploy
+
+Setelah setup:
+1. **Push ke branch main:**
+   ```bash
+   git push origin main
+   ```
+
+2. **Atau manual trigger:**
+   - Buka **Actions** tab di GitHub
+   - Pilih **Deploy to VPS** workflow
+   - Klik **Run workflow**
+
+3. **Monitor deployment:**
+   - Buka **Actions** tab untuk melihat progress
+   - Deployment akan otomatis:
+     - Pull latest code
+     - Rebuild containers
+     - Restart services
+     - Setup database schema
+     - Health check
+
+### 10.4 Workflow Details
+
+Workflow akan otomatis:
+- ✅ Trigger saat push ke `main` branch
+- ✅ Checkout code terbaru
+- ✅ SSH ke VPS
+- ✅ Pull latest code
+- ✅ Rebuild Docker containers
+- ✅ Restart services
+- ✅ Setup database schema
+- ✅ Health check
+
+**File workflow:** `.github/workflows/deploy.yml`
+
+**Dokumentasi lengkap:** Lihat `.github/workflows/README.md`
 
 ---
 
