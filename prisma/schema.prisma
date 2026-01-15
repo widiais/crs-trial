@@ -19,3 +19,17 @@ model Category {
 
   @@map("categories")
 }
+
+model ApiKey {
+  id          String   @id @default(uuid())
+  name        String   // Nama/deskripsi untuk identifikasi API key
+  key         String   @unique // API key yang akan digunakan
+  keyHash     String   @unique // Hashed version untuk security
+  active      Boolean  @default(true)
+  lastUsedAt  DateTime? // Track kapan terakhir digunakan
+  expiresAt   DateTime? // Optional: expiry date
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("api_keys")
+}

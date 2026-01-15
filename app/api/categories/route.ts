@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { categorySchema, categoryUpdateSchema } from "@/schemas/category";
-import { isAuthenticated } from "@/lib/session";
+import { isAuthenticatedOrHasApiKey } from "@/lib/session";
 
 // GET - Fetch all categories
 export async function GET() {
   try {
-    const authenticated = await isAuthenticated();
+    const authenticated = await isAuthenticatedOrHasApiKey();
     if (!authenticated) {
       return NextResponse.json(
         { error: "Unauthorized" },
@@ -31,7 +31,7 @@ export async function GET() {
 // POST - Create new category
 export async function POST(request: NextRequest) {
   try {
-    const authenticated = await isAuthenticated();
+    const authenticated = await isAuthenticatedOrHasApiKey();
     if (!authenticated) {
       return NextResponse.json(
         { error: "Unauthorized" },
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
 // PUT - Update category
 export async function PUT(request: NextRequest) {
   try {
-    const authenticated = await isAuthenticated();
+    const authenticated = await isAuthenticatedOrHasApiKey();
     if (!authenticated) {
       return NextResponse.json(
         { error: "Unauthorized" },
@@ -109,7 +109,7 @@ export async function PUT(request: NextRequest) {
 // DELETE - Delete category
 export async function DELETE(request: NextRequest) {
   try {
-    const authenticated = await isAuthenticated();
+    const authenticated = await isAuthenticatedOrHasApiKey();
     if (!authenticated) {
       return NextResponse.json(
         { error: "Unauthorized" },

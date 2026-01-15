@@ -1,4 +1,9 @@
 import { cookies } from "next/headers";
+import { headers } from "next/headers";
+import {
+  extractApiKeyFromRequest,
+  validateApiKey,
+} from "@/lib/api-key";
 
 const SESSION_COOKIE_NAME = "session";
 const SESSION_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
@@ -36,4 +41,26 @@ export async function deleteSession() {
 export async function isAuthenticated(): Promise<boolean> {
   const session = await getSession();
   return session !== null;
+}
+
+/**
+ * Check authentication via session OR API key
+ * Support untuk aplikasi web (session) dan aplikasi eksternal (API key)
+ */
+export async function isAuthenticatedOrHasApiKey(): Promise<boolean> {
+  // Check session first (untuk aplikasi web)
+  const session = await getSession();
+  if (session) {
+    return true;
+  }
+
+  // Check API key (untuk aplikasi eksternal)
+  const headersList = await headers();
+  const apiKey = extractApiKeyFromRequest(headersList);
+  if (apiKey) {
+    const validation = await validateApiKey(apiKey);
+    return validation.valid;
+  }
+
+  return false;
 }
