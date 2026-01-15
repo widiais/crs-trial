@@ -142,21 +142,27 @@ Tunggu hingga build selesai. Proses ini akan:
 Setelah containers running, setup database:
 
 ```bash
-# Masuk ke app container
-docker exec -it crs-trial sh
-
-# Di dalam container, jalankan:
-npx prisma db push
-
-# Exit container
-exit
+# Menggunakan deploy script (recommended)
+./deploy.sh setup-db
 ```
 
-Atau bisa juga dari host:
+Atau manual:
 
 ```bash
-docker exec -it crs-trial npx prisma db push
+# PENTING: Gunakan prisma@6.1.0 (bukan prisma saja)
+# Karena container mungkin install Prisma v7 yang berbeda dengan project
+docker exec crs-trial npx prisma@6.1.0 db push
 ```
+
+**⚠️ PENTING - Prisma Version:**
+- Project menggunakan Prisma Client v6.1.0
+- Container mungkin install Prisma CLI v7.x secara otomatis
+- Prisma v7 tidak support `url = env("DATABASE_URL")` di schema
+- **Selalu gunakan `prisma@6.1.0`** untuk semua Prisma commands
+
+**Jika error "P1012" atau "datasource property url is no longer supported":**
+- Pastikan menggunakan `prisma@6.1.0` bukan `prisma` saja
+- Pastikan `DATABASE_URL` ada di `.env` file dengan format: `postgresql://user:pass@postgres:5432/db?schema=public`
 
 ## Step 6: Verify Installation
 

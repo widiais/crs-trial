@@ -51,6 +51,11 @@ POSTGRES_PASSWORD=$POSTGRES_PASSWORD
 POSTGRES_DB=crs_trial
 POSTGRES_PORT=5432
 
+# Database URL (WAJIB untuk Prisma)
+# Format: postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=SCHEMA
+# HOST: gunakan nama service dari docker-compose (postgres) bukan localhost
+DATABASE_URL="postgresql://postgres:$POSTGRES_PASSWORD@postgres:5432/crs_trial?schema=public"
+
 # Application Configuration
 APP_PORT=3000
 SESSION_SECRET=$SESSION_SECRET

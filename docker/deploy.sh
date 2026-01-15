@@ -51,7 +51,8 @@ case "$1" in
         echo -e "${GREEN}Starting services...${NC}"
         docker-compose -f $COMPOSE_FILE --env-file $ENV_FILE up -d --build
         echo -e "${GREEN}Services started!${NC}"
-        echo -e "${YELLOW}Don't forget to run: docker exec -it crs-trial npx prisma db push${NC}"
+        echo -e "${YELLOW}Don't forget to run: ./deploy.sh setup-db${NC}"
+        echo -e "${YELLOW}Or manually: docker exec crs-trial npx prisma@6.1.0 db push${NC}"
         ;;
     stop)
         echo -e "${YELLOW}Stopping services...${NC}"
@@ -77,8 +78,16 @@ case "$1" in
         ;;
     setup-db)
         echo -e "${GREEN}Setting up database schema...${NC}"
-        docker exec -it crs-trial npx prisma db push
-        echo -e "${GREEN}Database schema setup complete!${NC}"
+        echo -e "${YELLOW}Using Prisma v6.1.0 to avoid version mismatch...${NC}"
+        # Gunakan prisma@6.1.0 untuk menghindari error P1012 (Prisma v7 tidak support format lama)
+        docker exec crs-trial npx prisma@6.1.0 db push
+        if [ $? -eq 0 ]; then
+            echo -e "${GREEN}Database schema setup complete!${NC}"
+        else
+            echo -e "${RED}Error setting up database schema.${NC}"
+            echo -e "${YELLOW}Make sure DATABASE_URL is set in .env file${NC}"
+            exit 1
+        fi
         ;;
     *)
         echo "Usage: $0 {start|stop|restart|logs|update|status|setup-db}"

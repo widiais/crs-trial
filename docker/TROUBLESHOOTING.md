@@ -77,16 +77,57 @@ echo $NEXT_PUBLIC_APP_URL
 ### Gejala
 - Error "table does not exist"
 - Tidak bisa create/read data
+- Error "P1012" - datasource property url is no longer supported
 
 ### Solusi
 
 ```bash
-# Setup database schema
+# Setup database schema (recommended)
 ./deploy.sh setup-db
 
-# Atau manual
+# Atau manual - PENTING: gunakan prisma@6.1.0
 docker exec crs-trial npx prisma@6.1.0 db push
 ```
+
+**⚠️ JANGAN gunakan:**
+```bash
+docker exec crs-trial npx prisma db push  # ❌ Akan download Prisma v7
+```
+
+### Problem: Prisma Version Mismatch (Error P1012)
+
+**Error:**
+```
+Error code: P1012
+error: The datasource property `url` is no longer supported in schema files.
+Prisma CLI Version : 7.2.0
+```
+
+**Penyebab:**
+- Container otomatis install Prisma CLI v7.x saat run `npx prisma`
+- Project menggunakan Prisma Client v6.1.0
+- Prisma v7 mengubah cara konfigurasi datasource
+
+**Solusi:**
+1. **Selalu gunakan versi spesifik:**
+   ```bash
+   docker exec crs-trial npx prisma@6.1.0 db push
+   ```
+
+2. **Pastikan DATABASE_URL ada di .env:**
+   ```bash
+   # Cek .env file
+   cat docker/.env | grep DATABASE_URL
+   
+   # Jika tidak ada, tambahkan:
+   # Format: postgresql://user:pass@postgres:5432/db?schema=public
+   # HOST harus "postgres" (nama service), bukan "localhost"
+   ```
+
+3. **Restart container setelah update .env:**
+   ```bash
+   ./deploy.sh restart
+   ```
 
 ## Masalah: Container Tidak Start
 

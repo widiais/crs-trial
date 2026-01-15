@@ -66,6 +66,20 @@ npm run build
 npm start
 ```
 
+## 🚀 Quick Start Deployment ke VPS
+
+**Panduan lengkap:** Lihat [`docker/DEPLOY_STEPS.md`](docker/DEPLOY_STEPS.md) untuk step-by-step guide.
+
+**Quick commands:**
+```bash
+# Di VPS
+git clone https://github.com/widiais/crs-trial.git
+cd crs-trial/docker
+./setup-env.sh your-domain.com
+./deploy.sh start
+./deploy.sh setup-db
+```
+
 ## Docker Production (Full Stack)
 
 Untuk menjalankan aplikasi lengkap dengan Docker di VPS:
